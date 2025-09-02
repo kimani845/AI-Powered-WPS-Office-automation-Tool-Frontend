@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Settings, Star, Upload, Download, X, MessageSquare, Bot, Zap, Globe } from 'lucide-react';
 
@@ -36,6 +37,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [showDocModal, setShowDocModal] = useState(false);
   const [showTranslationModal, setShowTranslationModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,6 +56,17 @@ function App() {
     source_language: 'en',
     target_language: 'zh',
     text: ''
+  });
+
+  // New state for Settings and Upgrade modal forms
+  const [settingsForm, setSettingsForm] = useState({
+    theme: 'dark',
+    api_key: '',
+    notifications: true,
+  });
+
+  const [upgradeForm, setUpgradeForm] = useState({
+    plan: 'pro',
   });
 
   const handleLanguageToggle = (lang: 'zh-en' | 'en-zh') => {
@@ -239,6 +253,34 @@ ${newFiles.map(file => `• ${file.name} (${(file.size / 1024).toFixed(1)} KB)`)
     handleFileUpload(e.dataTransfer.files);
   };
 
+  // New handlers for Settings and Upgrade buttons
+  const handleSettingsClick = () => {
+    setShowSettingsModal(true);
+  };
+
+  const handleUpgradeClick = () => {
+    setShowUpgradeModal(true);
+  };
+
+  const handleSettingsSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Settings saved:', settingsForm);
+    setShowSettingsModal(false);
+    setResponseContent(`✓ Settings updated successfully!
+• Theme: ${settingsForm.theme}
+• Notifications: ${settingsForm.notifications ? 'Enabled' : 'Disabled'}
+Changes have been applied.`);
+  };
+
+  const handleUpgradeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Upgrade request submitted for plan:', upgradeForm.plan);
+    setShowUpgradeModal(false);
+    setResponseContent(`🚀 Upgrade request for the ${upgradeForm.plan.toUpperCase()} plan submitted!
+Thank you for choosing to upgrade. Your new features will be activated shortly.
+`);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
       {/* Header */}
@@ -256,11 +298,17 @@ ${newFiles.map(file => `• ${file.name} (${(file.size / 1024).toFixed(1)} KB)`)
               </div>
             </div>
             <div className="flex gap-3">
-              <button className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full text-sm font-medium hover:bg-white/30 transition-all duration-300 hover:scale-105">
+              <button
+                onClick={handleSettingsClick}
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full text-sm font-medium hover:bg-white/30 transition-all duration-300 hover:scale-105"
+              >
                 <Settings className="w-4 h-4" />
                 Settings
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full text-sm font-medium text-white hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 hover:scale-105 shadow-lg">
+              <button
+                onClick={handleUpgradeClick}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full text-sm font-medium text-white hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 hover:scale-105 shadow-lg"
+              >
                 <Star className="w-4 h-4" />
                 Upgrade
               </button>
@@ -648,6 +696,148 @@ ${newFiles.map(file => `• ${file.name} (${(file.size / 1024).toFixed(1)} KB)`)
                 <button
                   type="button"
                   onClick={() => setShowTranslationModal(false)}
+                  className="flex-1 py-3 px-6 bg-gray-100 text-gray-700 rounded-full font-medium hover:bg-gray-200 transition-all duration-300 hover:scale-105"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-3xl transform transition-all duration-300 scale-100">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-800">App Settings</h2>
+              <button
+                onClick={() => setShowSettingsModal(false)}
+                className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSettingsSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Theme</label>
+                <select
+                  value={settingsForm.theme}
+                  onChange={(e) => setSettingsForm(prev => ({ ...prev, theme: e.target.value }))}
+                  className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300"
+                >
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                  <option value="system">System</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">OpenAI API Key (Optional)</label>
+                <input
+                  type="password"
+                  value={settingsForm.api_key}
+                  onChange={(e) => setSettingsForm(prev => ({ ...prev, api_key: e.target.value }))}
+                  className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300"
+                  placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
+                />
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="notifications"
+                  checked={settingsForm.notifications}
+                  onChange={(e) => setSettingsForm(prev => ({ ...prev, notifications: e.target.checked }))}
+                  className="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                />
+                <label htmlFor="notifications" className="ml-2 block text-sm font-semibold text-gray-700">Enable Notifications</label>
+              </div>
+
+              <div className="flex flex-col lg:flex-row gap-3 pt-4 border-t border-gray-200">
+                <button
+                  type="submit"
+                  className="flex-1 py-3 px-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full font-medium hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 hover:scale-105 shadow-lg"
+                >
+                  Save Settings
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowSettingsModal(false)}
+                  className="flex-1 py-3 px-6 bg-gray-100 text-gray-700 rounded-full font-medium hover:bg-gray-200 transition-all duration-300 hover:scale-105"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Upgrade Modal */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-3xl transform transition-all duration-300 scale-100">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-800">Upgrade Your Plan</h2>
+              <button
+                onClick={() => setShowUpgradeModal(false)}
+                className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpgradeSubmit} className="space-y-6">
+              <div className="space-y-4">
+                <div 
+                  className={`border-2 rounded-2xl p-6 cursor-pointer transition-colors duration-300 ${upgradeForm.plan === 'pro' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
+                  onClick={() => setUpgradeForm({ plan: 'pro' })}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Star className={`w-6 h-6 mr-3 ${upgradeForm.plan === 'pro' ? 'text-blue-500' : 'text-gray-400'}`} />
+                      <span className="font-bold text-xl text-gray-800">Pro Plan</span>
+                    </div>
+                    <span className="text-blue-600 font-bold">$19.99/mo</span>
+                  </div>
+                  <ul className="text-sm text-gray-600 mt-2 list-disc list-inside space-y-1">
+                    <li>Unlimited document generation</li>
+                    <li>Advanced data analysis features</li>
+                    <li>Priority support</li>
+                  </ul>
+                </div>
+                <div 
+                  className={`border-2 rounded-2xl p-6 cursor-pointer transition-colors duration-300 ${upgradeForm.plan === 'business' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-300'}`}
+                  onClick={() => setUpgradeForm({ plan: 'business' })}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Zap className={`w-6 h-6 mr-3 ${upgradeForm.plan === 'business' ? 'text-purple-500' : 'text-gray-400'}`} />
+                      <span className="font-bold text-xl text-gray-800">Business Plan</span>
+                    </div>
+                    <span className="text-purple-600 font-bold">$49.99/mo</span>
+                  </div>
+                  <ul className="text-sm text-gray-600 mt-2 list-disc list-inside space-y-1">
+                    <li>All Pro features</li>
+                    <li>Team collaboration tools</li>
+                    <li>Custom API integrations</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex flex-col lg:flex-row gap-3 pt-4 border-t border-gray-200">
+                <button
+                  type="submit"
+                  className="flex-1 py-3 px-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full font-medium hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 hover:scale-105 shadow-lg"
+                >
+                  Confirm Upgrade
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowUpgradeModal(false)}
                   className="flex-1 py-3 px-6 bg-gray-100 text-gray-700 rounded-full font-medium hover:bg-gray-200 transition-all duration-300 hover:scale-105"
                 >
                   Cancel
