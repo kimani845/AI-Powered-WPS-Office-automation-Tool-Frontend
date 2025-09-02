@@ -1,5 +1,6 @@
 
 import React, { useState, useRef } from 'react';
+import axios from 'axios';
 import { Settings, Star, Upload, Download, X, MessageSquare, Bot, Zap, Globe } from 'lucide-react';
 
 interface TranslationResult {
